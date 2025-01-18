@@ -19,7 +19,7 @@ export class Book extends Document {
     rating: number;
 
     @Prop({ type: [Types.ObjectId], ref: 'Review', default: [] })
-    reviews: Types.Array<Types.ObjectId>;  
+    reviews: Types.ObjectId[]; 
 }
 
 export const BookSchema = SchemaFactory.createForClass(Book);

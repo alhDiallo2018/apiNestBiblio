@@ -12,9 +12,9 @@ export class BooksService {
     constructor(@InjectModel(Book.name) private readonly bookModel: Model<Book>) {}
 
     async create(createBookDto: CreateBookDto): Promise<Book> {
-        const newBook = new this.bookModel(createBookDto);
-        return newBook.save();
+        return this.bookModel.create(createBookDto);
     }
+    
 
     async findAll(): Promise<Book[]> {
         return this.bookModel.find().exec();

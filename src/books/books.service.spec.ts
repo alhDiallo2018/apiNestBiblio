@@ -8,8 +8,9 @@ describe('BooksService', () => {
   let mockBookModel;
 
   beforeEach(async () => {
+    // Simuler le modèle Book
     mockBookModel = {
-      // Simuler la méthode create sur le modèle pour le test
+      // Simuler la méthode `create` qui renvoie un livre
       create: jest.fn().mockResolvedValue({
         title: 'NestJS Book',
         author: 'John Doe',
@@ -19,14 +20,6 @@ describe('BooksService', () => {
       findById: jest.fn().mockResolvedValue(null),
       findByIdAndUpdate: jest.fn().mockResolvedValue(null),
       findByIdAndDelete: jest.fn().mockResolvedValue(null),
-      // Simuler le comportement du constructeur pour 'new this.bookModel()'
-      new: jest.fn().mockReturnValue({
-        save: jest.fn().mockResolvedValue({
-          title: 'NestJS Book',
-          author: 'John Doe',
-          _id: '1',
-        }),
-      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -48,10 +41,8 @@ describe('BooksService', () => {
 
     const result = await service.create(createBookDto);
 
-    // Vérifier que la méthode 'new' du modèle a été appelée avec les bons paramètres
-    expect(mockBookModel.new).toHaveBeenCalledWith(createBookDto);
-    // Vérifier que la méthode save a été appelée
-    expect(mockBookModel.new().save).toHaveBeenCalled();
+    // Vérifier que la méthode `create` a été appelée avec les bons paramètres
+    expect(mockBookModel.create).toHaveBeenCalledWith(createBookDto);
     // Vérifier que la création renvoie bien l'objet attendu
     expect(result).toEqual({
       title: 'NestJS Book',

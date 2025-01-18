@@ -11,6 +11,7 @@ const mockReview = {
     userId: '12345',
     bookId: 'book123',
     createdAt: new Date(),
+    _id: 'newReviewId',  
     save: jest.fn().mockResolvedValue({
         comment: 'Great book!',
         rating: 5,
@@ -21,18 +22,21 @@ const mockReview = {
     }),
 };
 
+
 const mockReviewModel = {
     findOne: jest.fn(),
     findOneAndDelete: jest.fn(),
     create: jest.fn().mockResolvedValue({
-        comment: 'Great book!',
+        comment: 'Great book!',  
         rating: 5,
-        userId: '12345',
+        userId: '12345',  
         bookId: 'book123',
         createdAt: new Date(),
         _id: 'newReviewId',
     }),
 };
+
+
 
 const mockBookModel = {
     findById: jest.fn().mockReturnValue({
@@ -44,7 +48,10 @@ const mockBookModel = {
         }),
         save: jest.fn().mockResolvedValue(true),
     }),
+    updateOne: jest.fn().mockResolvedValue({ nModified: 1 }),  
 };
+
+
 
 describe('ReviewService', () => {
     let reviewService: ReviewService;
@@ -72,24 +79,28 @@ describe('ReviewService', () => {
     });
 
     it('should add a new review', async () => {
-        mockReviewModel.findOne.mockResolvedValueOnce(null); // Simulate no existing review
-
-        const result = await reviewService.addReview('book123', 'user123', 'Excellent book!', 5);
-
+        mockReviewModel.findOne.mockResolvedValueOnce(null); 
+        
+        const result = await reviewService.addReview('book123', '12345', 'Great book!', 5);
+        
         expect(mockReviewModel.create).toHaveBeenCalledWith({
-            comment: 'Excellent book!',
+            comment: 'Great book!',
             rating: 5,
-            userId: 'user123',
+            userId: '12345',
             createdAt: expect.any(Date),
         });
         expect(result).toEqual({
-            comment: 'Excellent book!',
+            comment: 'Great book!',  
             rating: 5,
-            userId: 'user123',
+            userId: '12345',  
             createdAt: expect.any(Date),
             _id: 'newReviewId',
+            bookId: 'book123',
         });
     });
+    
+    
+    
 
     it('should throw ForbiddenException if the user has already reviewed the book', async () => {
         mockReviewModel.findOne.mockResolvedValueOnce(mockReview); // Simulate existing review
@@ -121,13 +132,28 @@ describe('ReviewService', () => {
 
     it('should delete a review', async () => {
         mockReviewModel.findOneAndDelete.mockResolvedValueOnce(mockReview);
-
-        const result = await reviewService.deleteReview('book123', 'user123');
-
+        mockBookModel.updateOne.mockResolvedValue({ nModified: 1 });
+        
+        // Vérifiez que la méthode de suppression et la mise à jour sont appelées correctement
+        const result = await reviewService.deleteReview('book123', '12345');
+        
+        // Vérifiez que findOneAndDelete a bien été appelée avec les bons paramètres
         expect(mockReviewModel.findOneAndDelete).toHaveBeenCalledWith({
             bookId: 'book123',
-            userId: 'user123',
+            userId: '12345',
         });
+    
+        // Vérifiez que updateOne a été appelée avec le bon ID de la revue
+        expect(mockBookModel.updateOne).toHaveBeenCalledWith(
+            { _id: 'book123' },
+            { $pull: { reviews: 'newReviewId' } }  
+        );
+    
+        // Vérifiez la réponse de la suppression
         expect(result).toEqual({ message: 'Review deleted successfully' });
     });
+    
+    
+    
+    
 });

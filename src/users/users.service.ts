@@ -14,21 +14,19 @@ export class UserService {
 
     async createUser(createUserDto: CreateUserDto) {
         const { prenom, email, password, roles } = createUserDto;
-
+    
         // Hachage du mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Création de l'utilisateur
-        const newUser = new this.userModel({
+    
+        // Création et sauvegarde de l'utilisateur dans la base de données
+        return this.userModel.create({
             prenom,
             email,
             password: hashedPassword,
             roles,
         });
-
-        // Sauvegarde de l'utilisateur dans la base de données
-        return await newUser.save();
     }
+    
 
     async getUserById(userId: string) {
         const user = await this.userModel.findById(userId);
