@@ -1,4 +1,29 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateBookDto } from './create-book.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { IsArray, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class UpdateBookDto extends PartialType(CreateBookDto) {}
+@ApiTags('books')
+export class UpdateBookDto {
+    @IsOptional()
+    @IsString()
+    title?: string;
+
+    @IsOptional()
+    @IsString()
+    author?: string;
+
+    @IsOptional()
+    @IsDate()
+    publishedDate?: Date;
+
+    @IsOptional()
+    @IsString()
+    category?: string;
+
+    @IsOptional()
+    @IsNumber()
+    rating?: number;
+
+    @IsOptional()
+    @IsArray()
+    reviews?: string[];
+}

@@ -12,6 +12,8 @@ async function bootstrap() {
     .setTitle('Library API')
     .setDescription('API pour gérer une bibliothèque en ligne')
     .setVersion('1.0')
+    .addTag('users')
+    .addTag('books')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -11,14 +11,12 @@ export class ReviewService {
         @InjectModel(Book.name) private readonly bookModel: Model<Book>,
     ) {}
 
-    // Ajouter un avis
     async addReview(bookId: string, userId: string, comment: string, rating: number) {
         const book = await this.bookModel.findById(bookId);
         if (!book) {
             throw new NotFoundException('Book not found');
         }
 
-        // Vérifier si l'utilisateur a déjà laissé un avis
         const existingReview = await this.reviewModel.findOne({ bookId, userId });
         if (existingReview) {
             throw new ForbiddenException('You have already reviewed this book');
@@ -31,15 +29,13 @@ export class ReviewService {
             createdAt: new Date(),
         });
         await newReview.save();
-        
-        // Ajouter l'avis au livre, en utilisant le type correct pour `reviews`
-        book.reviews.push(newReview._id);  // `push` fonctionne avec le bon type
+
+        book.reviews.push(newReview._id);
         await book.save();
 
         return newReview;
     }
 
-    // Obtenir les avis d'un livre
     async getReviews(bookId: string) {
         const book = await this.bookModel.findById(bookId).populate('reviews');
         if (!book) {
@@ -48,7 +44,6 @@ export class ReviewService {
         return book.reviews;
     }
 
-    // Mettre à jour un avis
     async updateReview(bookId: string, userId: string, comment: string, rating: number) {
         const review = await this.reviewModel.findOne({ bookId, userId });
         if (!review) {
@@ -63,7 +58,6 @@ export class ReviewService {
         return review;
     }
 
-    // Supprimer un avis
     async deleteReview(bookId: string, userId: string) {
         const review = await this.reviewModel.findOneAndDelete({ bookId, userId });
         if (!review) {
@@ -75,10 +69,21 @@ export class ReviewService {
             throw new NotFoundException('Book not found');
         }
 
-        // Retirer l'avis du livre
-        book.reviews = book.reviews.filter((reviewId) => reviewId.toString() !== review._id.toString());
+        // book.reviews = book.reviews.filter(
+        //     (reviewId) => reviewId.toString() !== review._id.toString(),
+        // );
         await book.save();
 
         return { message: 'Review deleted successfully' };
+    }
+
+    async getTopRatedBooks(limit: number) {
+        return this.reviewModel
+            .aggregate([
+                { $group: { _id: '$bookId', averageRating: { $avg: '$rating' } } },
+                { $sort: { averageRating: -1 } },
+                { $limit: limit },
+            ])
+            .exec();
     }
 }

@@ -1,5 +1,7 @@
-import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiTags } from '@nestjs/swagger';
+import { IsArray, IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
 
+@ApiTags('books')
 export class CreateBookDto {
     @IsString()
     title: string;
@@ -18,4 +20,8 @@ export class CreateBookDto {
     @IsOptional()
     @IsNumber()
     rating?: number;
+
+    @IsOptional()
+    @IsArray()
+    reviews?: string[];
 }

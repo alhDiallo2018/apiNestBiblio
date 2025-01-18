@@ -1,12 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { InvalidCredentialsException } from '../common/InvalidCredentialsException';
+import { UserService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly usersService: UsersService,
+        private readonly usersService: UserService,
         private readonly jwtService: JwtService,
     ) { }
 
@@ -23,7 +24,8 @@ export class AuthService {
         const { email, password } = loginDto;
         const user = await this.validateUser(email, password);
         if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
+            // Utilisation de l'exception personnalisée
+            throw new InvalidCredentialsException();
         }
         const payload = { email: user.email, sub: user._id, roles: user.roles };
         return {

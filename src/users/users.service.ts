@@ -1,86 +1,90 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
+import { EmailAlreadyExistsException } from '../common/email-already-exists.exception';
+import { UserNotFoundException } from '../common/user-not-found.exception';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
-
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
+    constructor(@InjectModel(User.name) private readonly userModel: Model<User>) { }
 
-    // Créer un utilisateur
-    async createUser(prenom: string, email: string, password: string, roles: string[] = ['user']) {
-        const userExists = await this.userModel.findOne({ email });
-        if (userExists) {
-            throw new BadRequestException('Email already exists');
-        }
+    async createUser(createUserDto: CreateUserDto) {
+        const { prenom, email, password, roles } = createUserDto;
 
-        const newUser = new this.userModel({ prenom, email, password, roles });
+        // Hachage du mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Création de l'utilisateur
+        const newUser = new this.userModel({
+            prenom,
+            email,
+            password: hashedPassword,
+            roles,
+        });
+
+        // Sauvegarde de l'utilisateur dans la base de données
         return await newUser.save();
     }
 
-    // Obtenir un utilisateur par son ID
     async getUserById(userId: string) {
         const user = await this.userModel.findById(userId);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new UserNotFoundException(userId);
         }
         return user;
     }
 
-    // Obtenir un utilisateur par son email
     async getUserByEmail(email: string) {
         const user = await this.userModel.findOne({ email });
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new UserNotFoundException(`Email: ${email}`);
         }
         return user;
     }
 
-    // Mettre à jour un utilisateur
-    async updateUser(userId: string, prenom?: string, email?: string, password?: string, roles?: string[]) {
+    async updateUser(userId: string, updateUserDto: UpdateUserDto) {
         const user = await this.userModel.findById(userId);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new UserNotFoundException(userId);
         }
+
+        const { email, prenom, password, roles } = updateUserDto;
 
         if (email) {
             const emailExists = await this.userModel.findOne({ email });
             if (emailExists && emailExists._id.toString() !== userId) {
-                throw new BadRequestException('Email already in use');
+                throw new EmailAlreadyExistsException(email);
             }
             user.email = email;
         }
 
         if (prenom) user.prenom = prenom;
-        if (password) user.password = await bcrypt.hash(password, 10); // Hash du nouveau mot de passe
+        if (password) user.password = await bcrypt.hash(password, 10);
         if (roles) user.roles = roles;
 
         await user.save();
         return user;
     }
 
-    // Supprimer un utilisateur
     async deleteUser(userId: string) {
         const user = await this.userModel.findById(userId);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new UserNotFoundException(userId);
         }
 
-        // Utilisation de deleteOne() au lieu de remove()
         await this.userModel.deleteOne({ _id: userId });
-
         return { message: 'User deleted successfully' };
     }
 
-    // Trouver un utilisateur par email
     async findByEmail(email: string): Promise<User> {
         const user = await this.userModel.findOne({ email });
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new UserNotFoundException(`Email: ${email}`);
         }
         return user;
     }
-
 }
