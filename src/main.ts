@@ -10,7 +10,7 @@ async function bootstrap() {
   const { SwaggerModule, DocumentBuilder } = require('@nestjs/swagger');
   const config = new DocumentBuilder()
     .setTitle('Library API')
-    .setDescription('API pour gérer une bibliothèque en ligne')
+    .setDescription('API pour gérer une bibliothèque en ligne(Alasko Diallo)')
     .setVersion('1.0')
     .addTag('users')
     .addTag('books')

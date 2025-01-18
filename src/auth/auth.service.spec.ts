@@ -20,8 +20,8 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: UserService, useValue: mockUserService }, // Mock UserService
-        JwtService, // Add JwtService if needed, or mock it
+        { provide: UserService, useValue: mockUserService }, 
+        JwtService, 
       ],
     }).compile();
 

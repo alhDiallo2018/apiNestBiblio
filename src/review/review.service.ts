@@ -18,7 +18,6 @@ export class ReviewService {
             throw new NotFoundException('Book not found');
         }
 
-        // Vérifier si l'utilisateur a déjà laissé une revue
         const existingReview = await this.reviewModel.findOne({ bookId, userId });
         if (existingReview) {
             throw new ForbiddenException('You have already reviewed this book');
@@ -32,13 +31,11 @@ export class ReviewService {
             createdAt: new Date(),
         });
 
-        // Vérifier et initialiser `reviews` s'il est indéfini
         if (!book.reviews || !Array.isArray(book.reviews)) {
             book.reviews = [];
         }
 
-        // Ajouter l'ID de la revue au tableau des revues du livre
-        book.reviews.push(newReview._id as any);  // Cast explicite pour éviter l'erreur de type
+        book.reviews.push(newReview._id as any); 
 
         // Sauvegarder les changements dans le livre
         await book.save();
